@@ -1,69 +1,121 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Card from "@/components/home/Card";
+import axios from "axios";
+import { useState } from "react";
+
+import { LeetCodeProfile } from "@/types/leetcode";
+import { ShieldCheck } from "lucide-react";
+import PrivacyPopup from "@/components/home/PrivacyPopup";
+
+export default function HomePage() {
+  const [username, setUsername] = useState("");
+  const [profile, setProfile] = useState<LeetCodeProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  const handleSubmit = async () => {
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername) {
+      setError("Please enter a LeetCode username.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setProfile(null);
+
+    try {
+      const res = await axios.get<LeetCodeProfile>(
+        `/api/leetcode/${encodeURIComponent(trimmedUsername)}`,
+      );
+      setProfile(res.data);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 404) {
+          setError("LeetCode user not found.");
+        } else {
+          setError("Unable to fetch profile. Please try again.");
+        }
+      } else {
+        setError("Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <>
+      <div
+        className={`flex flex-col items-center bg-[#1a1a1a] transition-all duration-500 ease-in-out ${
+          profile
+            ? "min-h-screen justify-start pt-10"
+            : "h-screen justify-center"
+        } p-6 space-y-8`}
+      >
+        {/* Heading */}
+        <div className="text-center space-y-5">
+          <h1 className="text-white text-5xl sm:text-6xl md:text-7xl font-bold">
+            Your <span className="text-[#fc8a23]">LeetCode</span> Stats
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <h2 className="text-white text-2xl sm:text-3xl md:text-4xl">
+            Clear. Actionable. Powerful.
+          </h2>
+          <h4 className="text-gray-400 text-lg sm:text-xl md:text-2xl">
+            See Your Coding Stats At a Glance
+          </h4>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Input and Button */}
+        <div className="w-full max-w-md flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
+          <input
+            id="inputBox"
+            name="text"
+            type="text"
+            placeholder="Enter Leetcode Username"
+            className="border border-[#fc8a23] rounded-xl text-white p-3 w-full bg-transparent"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <button
+            onClick={handleSubmit}
+            className="bg-[#fc8a23] text-white px-6 py-2 text-sm rounded-xl hover:bg-[#e07a1c] transition w-full sm:w-auto sm:px-6 sm:py-3 sm:text-base whitespace-nowrap"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Generate Card
+          </button>
         </div>
-      </main>
-    </div>
+
+        {/* Loading / Error */}
+        {loading && <p className="text-white text-lg">Loading...</p>}
+        {error && <p className="text-red-500 text-lg">{error}</p>}
+
+        {/* Card Component */}
+        {profile && (
+          <div className="w-full px-4 sm:px-6 md:px-10">
+            <Card profile={profile} />
+          </div>
+        )}
+      </div>
+
+      {/* Privacy Button */}
+      <button
+        onClick={() => setShowPrivacy(true)}
+        aria-label="Privacy"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 rounded-full bg-[#fc8a23] p-3 sm:px-5 text-sm font-semibold text-black shadow-lg hover:bg-[#e07a1c] hover:scale-105 transition-all duration-200 focus:bg-[#fc8a23]"
+      >
+        <ShieldCheck size={18} />
+        <span className="hidden sm:inline">Privacy</span>
+      </button>
+
+      {/* Privacy Popup */}
+      <PrivacyPopup
+        isOpen={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+      />
+    </>
   );
 }
