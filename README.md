@@ -842,6 +842,6 @@ Every push to the main branch triggers a production deployment, and pull request
 
 ## 13. Privacy
 
-LeetInsight does not use accounts, a database, or persistent profile storage. A username is used only to fetch public LeetCode data for the current request. See the in-app [`/privacy`](app/privacy/page.tsx) page for the full policy.
+LeetInsight does not use accounts, a database, or persistent profile storage. A username is used only to fetch public LeetCode data for the current request. See the in-app privacy policy.
 
 ---
