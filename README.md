@@ -833,7 +833,6 @@ Every push to the main branch triggers a production deployment, and pull request
 
 **Possible future work**
 
-- Multiple card themes (light/dark, compact/detailed)
 - Contest rating and history on the card
 - Embeddable SVG/PNG endpoint for README badges
 - Basic rate limiting on the API route
