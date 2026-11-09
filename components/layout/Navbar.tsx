@@ -4,8 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
-import NavLogo from "@/public/insight.png";
 import { FaGithub, FaStar, FaXTwitter } from "react-icons/fa6";
 
 const SCROLL_THRESHOLD = 8;
@@ -84,13 +82,13 @@ export default function Navbar() {
         <Link
           href="/"
           onClick={handleLogoClick}
-          aria-label="LeetInsight – back to top"
+          aria-label="LeetInsight - back to top"
           className="group flex items-center gap-2.5 rounded-full p-1 pr-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fc8a23]"
         >
           {/* Orange tile keeps the (dark) logo visible on the dark glass background */}
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br from-[#f9b06a] to-[#e07c1f] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25),0_6px_18px_rgba(252,138,35,0.38)] transition duration-300 group-hover:-rotate-6 group-hover:scale-105 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3),0_8px_26px_rgba(252,138,35,0.6)] motion-reduce:transition-none sm:h-10 sm:w-10 sm:rounded-[13px]">
             <Image
-              src={NavLogo}
+              src="/insight.png"
               alt="LeetInsight logo"
               className="h-6 w-6 sm:h-7 sm:w-7"
             />
@@ -107,7 +105,7 @@ export default function Navbar() {
         {/* ---------------- Actions ---------------- */}
         <div className="flex items-center gap-2">
           <a
-            href="https://github.com/AritraC1"
+            href="https://github.com/AritraC1/LeetInsight"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Star LeetInsight on GitHub"
