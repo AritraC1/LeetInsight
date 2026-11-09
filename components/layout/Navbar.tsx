@@ -90,6 +90,8 @@ export default function Navbar() {
             <Image
               src="/insight.png"
               alt="LeetInsight logo"
+              width={28}
+              height={28}
               className="h-6 w-6 sm:h-7 sm:w-7"
             />
           </span>
