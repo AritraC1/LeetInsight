@@ -8,7 +8,7 @@ export default function CardSkeleton() {
       aria-label="Loading your profile card"
       className="mx-auto w-full max-w-220 animate-pulse"
     >
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5.5 text-white sm:p-9">
+      <div className="rounded-[28px] border border-white/10 bg-white/3 p-5.5 text-white sm:p-9">
         {/* ---- Top: user + brand ---- */}
         <div className="flex items-center justify-between gap-5">
           <div className="flex min-w-0 items-center gap-5">
