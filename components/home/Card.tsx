@@ -22,7 +22,7 @@ interface CardProps {
 // Constants
 
 const CARD_WIDTH = 880; // the card is always laid out at this width, so the PNG is identical on every device
-const MAX_BADGES = 14; // 2 rows of 7; if there are more, the last slot becomes a "+N" tile
+const MAX_BADGES = 14; // 2 rows of 7; overflow and failed-to-load badges collapse into the last "+N" tile
 const MAX_LANGUAGES = 4;
 
 const RING_RADIUS = 58;
@@ -96,12 +96,16 @@ export default function Card({ profile, stats }: CardProps) {
     : [];
   const maxLanguage = Math.max(...languages.map((l) => l.problemsSolved), 1);
 
-  const allBadges = (profile.badges ?? []).filter(
+  const allBadges = profile.badges ?? [];
+  // Badges whose CDN image failed; they still count towards the total but
+  // don't get a slot in the grid, so the "+N" tile keeps the count honest.
+  const loadedBadges = allBadges.filter(
     (b) => !failedBadges.has(String(b.id)),
   );
-  const overflow = allBadges.length > MAX_BADGES;
-  const badges = overflow ? allBadges.slice(0, MAX_BADGES - 1) : allBadges;
-  const extraBadges = overflow ? allBadges.length - badges.length : 0;
+  const overflow = loadedBadges.length > MAX_BADGES;
+  const badges = overflow ? loadedBadges.slice(0, MAX_BADGES - 1) : loadedBadges;
+  // Everything not shown as an image: sliced-off extras + failed-to-load ones
+  const hiddenCount = allBadges.length - badges.length;
 
   const monthYear = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -318,7 +322,7 @@ export default function Card({ profile, stats }: CardProps) {
                   title={`Badges · ${allBadges.length}`}
                   className="min-w-0 flex-1"
                 >
-                  {badges.length === 0 ? (
+                  {allBadges.length === 0 ? (
                     <p className="text-sm text-neutral-400">No badges earned yet.</p>
                   ) : (
                     <div className="flex flex-wrap items-center gap-3">
@@ -333,9 +337,12 @@ export default function Card({ profile, stats }: CardProps) {
                           onError={() => handleBadgeError(String(badge.id))}
                         />
                       ))}
-                      {extraBadges > 0 && (
-                        <div className="grid h-14 w-14 place-items-center rounded-2xl border border-dashed border-[#ef9242]/50 bg-white/6 font-extrabold text-[#ef9242]">
-                          +{extraBadges}
+                      {hiddenCount > 0 && (
+                        <div
+                          title={`${hiddenCount} badge${hiddenCount === 1 ? "" : "s"} not shown`}
+                          className="grid h-14 w-14 place-items-center rounded-2xl border border-dashed border-[#ef9242]/50 bg-white/6 font-extrabold text-[#ef9242]"
+                        >
+                          +{hiddenCount}
                         </div>
                       )}
                     </div>

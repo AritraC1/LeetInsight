@@ -1,6 +1,7 @@
 "use client";
 
 import Card from "@/components/home/Card";
+import CardSkeleton from "@/components/home/CardSkeleton";
 import axios from "axios";
 import { useState } from "react";
 
@@ -53,7 +54,8 @@ export default function HomePage() {
         className={`flex flex-col items-center bg-[#1a1a1a] transition-all duration-500 ease-in-out ${
           profile
             ? "min-h-screen justify-start pt-10"
-            : "h-screen justify-center"
+            : // Offset the fixed navbar padding so the hero truly centers in the viewport
+              "min-h-[calc(100svh-4.5rem)] justify-center"
         } p-6 space-y-8`}
       >
         {/* Heading */}
@@ -90,11 +92,13 @@ export default function HomePage() {
         </div>
 
         {/* Loading / Error */}
-        {loading && <p className="text-white text-lg">Loading...</p>}
         {error && <p className="text-red-500 text-lg">{error}</p>}
 
+        {/* Loading skeleton */}
+        {loading && <CardSkeleton />}
+
         {/* Card Component */}
-        {profile && (
+        {profile && !loading && (
           <div className="w-full px-4 sm:px-6 md:px-10">
             <Card profile={profile} />
           </div>

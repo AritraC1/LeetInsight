@@ -24,8 +24,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // Browser extensions (e.g. Bing Image Search) inject attributes into
+      // <html>/<body> before hydration; suppress the resulting false mismatch.
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
         <Navbar />
 
         <main className="flex-1 pt-18">
