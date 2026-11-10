@@ -1,35 +1,34 @@
 # LeetInsight
----
+
 > A LeetCode profile card generator. Enter a username, get a polished, downloadable card you can share on GitHub, LinkedIn, and your portfolio.
 
-LeetInsight is a single-page Next.js app that reads public LeetCode profile data, renders a clean stats card, and lets users download or copy the card as an image. The frontend and API logic live in the same repository and deploy as one Vercel project.
+LeetInsight is a single-page Next.js app that reads public LeetCode profile data, renders a clean profile card (top languages and badges), and lets users download or copy the card as an image. The frontend and API logic live in the same repository and deploy as one Vercel project.
 
 ![LeetInsight Landing page](public/LandingPage.png)
 
 ---
 
 ## Demo
-| Card Search               | Download Option                | Downloaded Image                           |
-|------------------------|------------------------|--------------------------------------------|
-| ![card Search](public/CardSearch.png) | ![Download Option](public/downloadCard.png) | ![Downloaded Image](public/Downloaded.png) |
+
+| Card Search                            | Download Option                                  | Downloaded Image                        |
+| -------------------------------------- | ------------------------------------------------ | --------------------------------------- |
+| ![card Search](public/CardSearch.png)  | ![Download Option](public/downloadCard.png)      | ![Downloaded Image](public/Downloaded.png) |
 
 ---
 
 ## Table of Contents
 
-1. [Product Overview](#1-product-overview)
-2. [Tech Stack](#2-tech-stack)
-3. [What is GraphQL?](#3-what-is-graphql)
-4. [How LeetInsight Uses LeetCode's GraphQL API](#4-how-leetinsight-uses-leetcodes-graphql-api)
-5. [High-Level Design (HLD)](#5-high-level-design-hld)
-6. [Low-Level Design (LLD)](#6-low-level-design-lld)
-7. [Project Structure](#7-project-structure)
-8. [Getting Started](#8-getting-started)
-9. [Configuration](#9-configuration)
+1.  [Product Overview](#1-product-overview)
+2.  [Tech Stack](#2-tech-stack)
+3.  [What is GraphQL?](#3-what-is-graphql)
+4.  [How LeetInsight Uses LeetCode's GraphQL API](#4-how-leetinsight-uses-leetcode-s-graphql-api)
+5.  [High-Level Design (HLD)](#5-high-level-design-hld)
+6.  [Low-Level Design (LLD)](#6-low-level-design-lld)
+7.  [Project Structure](#7-project-structure)
+8.  [Getting Started](#8-getting-started)
+9.  [Configuration](#9-configuration)
 10. [Deployment](#10-deployment)
-11. [Design Decisions & Trade-offs](#11-design-decisions--trade-offs)
-12. [Limitations & Future Work](#12-limitations--future-work)
-13. [Privacy](#13-privacy)
+11. [Privacy](#13-privacy)
 
 ---
 
@@ -44,7 +43,7 @@ Next.js app
        ↓
 LeetCode GraphQL API
        ↓
-Normalize profile fields
+Profile-shaped JSON (fields limited by the query)
        ↓
 Render card + export image
 ```
@@ -52,23 +51,26 @@ Render card + export image
 ### Home page layout
 
 ```text
-Navbar
-  ├── LeetInsight brand
-  ├── GitHub link
+Navbar (fixed floating pill, rendered in app/layout.tsx)
+  ├── LeetInsight brand (click scrolls to top on the home page)
+  ├── "Star on GitHub" link
   └── X link
 
 Hero
   ├── "Your LeetCode Stats"
-  ├── supporting headline
-  └── username input + generate button
+  ├── "Clear. Actionable. Powerful."
+  └── username input + Generate Card button
+
+Loading skeleton (mimics the card while fetching)
 
 Result card
   ├── avatar
-  ├── display name / username
-  ├── solved totals
-  ├── language stats
-  ├── badges
-  └── PNG download / copy actions
+  ├── display name / @username
+  ├── Top Languages (bar list, top 4)
+  ├── Badges (grid of icons with a "+N" overflow tile)
+  └── Download PNG / Copy image actions + toast feedback
+
+Privacy button (bottom-right) → in-app privacy policy popup
 ```
 
 ### Explicit non-goals
@@ -82,17 +84,17 @@ Result card
 
 ## 2. Tech Stack
 
-| Layer            | Technology                                 |
-| ---------------- | ------------------------------------------ |
-| Framework        | Next.js (App Router)                       |
-| Language         | TypeScript                                 |
-| UI               | React                                      |
-| Styling          | Tailwind CSS                               |
-| API client       | Axios                                      |
-| Image export     | `html-to-image`                            |
-| Caching          | `node-cache`                               |
-| Icons            | `lucide-react`, `react-icons`             |
-| Hosting          | Vercel                                     |
+| Layer          | Technology                                        |
+| -------------- | ------------------------------------------------- |
+| Framework      | Next.js 16 (App Router)                           |
+| Language       | TypeScript                                        |
+| UI             | React 19                                          |
+| Styling        | Tailwind CSS 4                                    |
+| API client     | Axios                                             |
+| Image export   | `html-to-image` (PNG + clipboard blob)            |
+| Caching        | `node-cache`                                      |
+| Icons          | `lucide-react`, `react-icons`                     |
+| Hosting        | Vercel                                            |
 
 ---
 
@@ -104,11 +106,11 @@ Result card
 
 | Aspect          | REST                                         | GraphQL                                         |
 | --------------- | -------------------------------------------- | ----------------------------------------------- |
-| Endpoints       | Many (`/users/1`, `/users/1/badges`, ...)    | Typically one (`/graphql`)                     |
-| Response shape  | Fixed by the server                          | Chosen by the client query                     |
-| Over-fetching   | Common                                      | Avoided                                        |
-| Under-fetching  | Common                                      | Avoided                                        |
-| Typing          | Optional                                     | Built in                                       |
+| Endpoints       | Many (`/users/1`, `/users/1/badges`, ...)    | Typically one (`/graphql`)                      |
+| Response shape  | Fixed by the server                          | Chosen by the client query                      |
+| Over-fetching   | Common                                       | Avoided                                         |
+| Under-fetching  | Common                                       | Avoided                                         |
+| Typing          | Optional                                     | Built in                                        |
 
 ### Core concepts
 
@@ -177,7 +179,7 @@ Response:
 }
 ```
 
-> Note: GraphQL can return HTTP `200` even when the response contains `errors`. The app checks the response body, not just the status code.
+> Note: GraphQL can return HTTP `200` even when the response contains `errors`. The app checks the response body (`matchedUser` is `null` for unknown users), not just the status code.
 
 ---
 
@@ -191,7 +193,7 @@ POST https://leetcode.com/graphql
 
 LeetInsight sends a request from the server using the provided username and asks only for the fields needed to render the profile card: display name, avatar, language solve counts, and badges.
 
-An illustrative query used by the app is:
+The query used by the app (`app/api/leetcode/[username]/route.ts`):
 
 ```graphql
 query getUserProfile($username: String!) {
@@ -217,9 +219,9 @@ query getUserProfile($username: String!) {
 
 Key points:
 
-- The API call is made server-side in `app/api/leetcode/[username]/route.ts`, not in the browser.
-- The username is part of the route path: `/api/leetcode/<username>`.
-- The response is normalized before being sent to the UI.
+- The API call is made server-side in `app/api/leetcode/[username]/route.ts`, not in the browser — this avoids CORS problems and keeps the upstream logic in one place.
+- The username is part of the route path: `/api/leetcode/<username>` (URL-encoded on the client).
+- The query limits the response to exactly the `LeetCodeProfile` shape the UI consumes, so no extra transformation step is needed.
 - If `matchedUser` is `null`, the app returns a `404` response and the user sees a validation message in the interface.
 
 ---
@@ -237,7 +239,7 @@ GET /api/leetcode/[username]
       ↓
 LeetCode GraphQL API
       ↓
-Normalize profile response
+Profile JSON returned to the UI
       ↓
 Render card with languages + badges
       ↓
@@ -267,13 +269,13 @@ flowchart LR
 
 ### 5.3 Components at a glance
 
-| Component             | Responsibility                                                      |
-| --------------------- | ------------------------------------------------------------------- |
-| **Frontend (React)** | Renders the home screen, manages username input, and shows the card |
-| **Route Handler**     | Validates the path param, fetches from LeetCode, and returns JSON    |
-| **Cache**             | Stores recent profile lookups for a short TTL                       |
-| **Card export**       | Converts the rendered card to PNG or clipboard image                |
-| **LeetCode GraphQL**  | Source of truth for public user profile data                        |
+| Component             | Responsibility                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| **Frontend (React)**  | Renders the home screen, manages username input, loading skeleton, and the card      |
+| **Route Handler**     | Validates the path param, fetches from LeetCode, and returns JSON                    |
+| **Cache**             | Stores recent profile lookups for a short TTL                                        |
+| **Card export**       | Converts the rendered card to a PNG or a clipboard image                             |
+| **LeetCode GraphQL**  | Source of truth for public user profile data                                         |
 
 ### 5.4 Primary request flow
 
@@ -285,25 +287,26 @@ sequenceDiagram
     participant LC as LeetCode GraphQL
 
     U->>UI: Enter username and click Generate Card
+    UI->>UI: Validate + trim input, show skeleton
     UI->>API: GET /api/leetcode/alice
     API->>API: Check cache
     API->>LC: POST GraphQL query
     LC-->>API: Raw JSON payload
-    API->>API: Normalize structured data
+    API->>API: Shape-check against LeetCodeProfile
     API-->>UI: 200 JSON profile payload
     UI->>U: Render profile card
     U->>UI: Click Download / Copy
-    UI->>U: Export image
+    UI->>U: Export image + toast feedback
 ```
 
 ### 5.5 Data flow summary
 
 1. The user inputs a LeetCode username.
-2. The frontend calls the app's API route using the username in the URL.
+2. The frontend trims and validates the input, shows a loading skeleton, then calls the app's API route with the URL-encoded username.
 3. The route checks the in-memory cache.
-4. If needed, it calls LeetCode GraphQL, retrieves profile data, and returns it as JSON.
-5. The UI renders the card with solved counts, language stats, and badges.
-6. The card is exported to a PNG or copied to the clipboard.
+4. If needed, it calls LeetCode GraphQL and returns the profile as JSON.
+5. The UI renders the card with language stats and badges.
+6. The card is exported to a PNG (downloaded) or copied to the clipboard, with toast feedback.
 
 ### 5.6 Statelessness
 
@@ -318,11 +321,11 @@ The only temporary storage is the in-memory cache used to reduce repeat LeetCode
 
 ### 5.7 Caching strategy
 
-| Layer      | What is cached              | Mechanism                          |
-| ---------- | --------------------------- | ---------------------------------- |
-| App runtime | Recent profile responses    | `node-cache` with 5-minute TTL     |
-| Browser    | UI state only               | React state, no persisted cache    |
-| Static assets | JS, CSS, fonts, images    | Vercel static asset delivery      |
+| Layer         | What is cached              | Mechanism                              |
+| ------------- | --------------------------- | -------------------------------------- |
+| App runtime   | Recent profile responses    | `node-cache` with 5-minute TTL         |
+| Browser       | UI state only               | React state, no persisted cache        |
+| Static assets | JS, CSS, fonts, images      | Vercel static asset delivery           |
 
 The cache is intentionally short-lived to avoid stale stats while still reducing redundant calls.
 
@@ -332,7 +335,7 @@ The cache is intentionally short-lived to avoid stale stats while still reducing
 - **Reliability**: failures are handled gracefully and surfaced to the user.
 - **Security**: no secret keys are needed; the app only reads public LeetCode data.
 - **Scalability**: stateless Next.js serverless functions scale well with Vercel.
-- **Maintainability**: API-specific logic is kept in a small route and in a few helper types.
+- **Maintainability**: API-specific logic is kept in a small route with a few shared types.
 
 ---
 
@@ -343,6 +346,7 @@ The cache is intentionally short-lived to avoid stale stats while still reducing
 ```mermaid
 flowchart TD
     subgraph app["app/"]
+        Layout["layout.tsx (Root layout)"]
         Page["page.tsx (Home)"]
         Route["api/leetcode/[username]/route.ts"]
     end
@@ -350,6 +354,7 @@ flowchart TD
     subgraph components["components/"]
         Navbar["layout/Navbar.tsx"]
         Card["home/Card.tsx"]
+        Skeleton["home/CardSkeleton.tsx"]
         Privacy["home/PrivacyPopup.tsx"]
     end
 
@@ -359,103 +364,45 @@ flowchart TD
 
     Types["types/leetcode.ts"]
 
-    Page --> Navbar
+    Layout --> Navbar
     Page --> Card
+    Page --> Skeleton
     Page --> Privacy
     Page -->|fetch| Route
     Route --> Cache
-    Route --> Types
     Card --> Types
 ```
 
 ### 6.2 Responsibilities by file
 
-| File                                        | Responsibility                                                                 |
-| ------------------------------------------- | ------------------------------------------------------------------------------ |
-| `app/page.tsx`                              | Home screen, username state, loading/error handling, card rendering           |
-| `app/api/leetcode/[username]/route.ts`      | Route handler for profile requests and cache logic                             |
-| `components/layout/Navbar.tsx`              | Top navigation with brand links                                               |
-| `components/home/Card.tsx`                  | Full card rendering plus PNG export / clipboard copy                          |
-| `components/home/PrivacyPopup.tsx`          | In-app privacy modal                                                          |
-| `lib/cache/cache.ts`                        | Short-lived in-memory cache for profile responses                              |
-| `types/leetcode.ts`                         | Shared user/profile schema for the app                                        |
-| `next.config.ts`                           | Allows remote LeetCode image hosts for `next/image`                           |
+| File                                        | Responsibility                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `app/page.tsx`                              | Home screen, username state, loading/error handling, card and privacy popup rendering             |
+| `app/layout.tsx`                            | Root layout, fonts (Geist / Geist Mono), metadata, and the fixed Navbar                           |
+| `app/api/leetcode/[username]/route.ts`      | Route handler for profile requests, GraphQL fetch, and cache logic                                |
+| `components/layout/Navbar.tsx`              | Fixed floating pill navbar with scroll-aware styling and a scroll progress bar                    |
+| `components/home/Card.tsx`                  | Full card rendering plus PNG export / clipboard copy with toast feedback                          |
+| `components/home/CardSkeleton.tsx`          | Loading placeholder that mimics the card layout for a seamless swap                               |
+| `components/home/PrivacyPopup.tsx`          | In-app privacy modal (Escape to close, background scroll locked)                                  |
+| `lib/cache/cache.ts`                        | Short-lived in-memory cache for profile responses                                                 |
+| `types/leetcode.ts`                         | Shared user/profile schema for the app                                                            |
+| `next.config.ts`                            | Allows remote LeetCode image hosts for `next/image`                                               |
 
-### 6.3 Route contract
 
-The public API route is:
+### 6.3 Response contract
 
-```text
-GET /api/leetcode/[username]
-```
+| Status | Body                                    | Meaning                        |
+| ------ | --------------------------------------- | ------------------------------ |
+| `200`  | profile JSON                            | success                        |
+| `404`  | `{ "error": "User not found" }`         | user not found on LeetCode     |
+| `500`  | `{ "error": "Something went wrong" }`   | unexpected application error   |
 
-The handler follows this flow:
 
-1. Read the route param `username`.
-2. Check the in-memory cache.
-3. If the user is not cached, call the LeetCode GraphQL API.
-4. If the user does not exist, return `404`.
-5. Cache the result for a short TTL and send it back as JSON.
+While `loading` is true, the page renders `CardSkeleton` instead of the card.
 
-```ts
-// app/api/leetcode/[username]/route.ts
-export async function GET(
-  request: Request,
-  { params }: RouteContext
-) {
-  const { username } = await params;
-  const cached = cache.get(username);
+### 6.4 Data model
 
-  if (cached) {
-    return NextResponse.json(cached);
-  }
-
-  const userData = await fetchLeetcodeProfile(username);
-
-  if (!userData) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  cache.set(username, userData);
-  return NextResponse.json(userData);
-}
-```
-
-### 6.4 Response contract
-
-| Status | Body | Meaning |
-| ------ | ---- | ------- |
-| `200` | profile JSON | success |
-| `404` | `{ "error": "User not found" }` | user not found on LeetCode |
-| `500` | `{ "error": "Something went wrong" }` | unexpected application error |
-
-### 6.5 Frontend state model
-
-The Home page keeps a small local state model:
-
-```ts
-const [username, setUsername] = useState("");
-const [profile, setProfile] = useState<LeetCodeProfile | null>(null);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState("");
-```
-
-State transitions are simple:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> Loading: valid username submitted
-    Idle --> Idle: invalid or empty input
-    Loading --> Success: 200 response
-    Loading --> Error: 404 / network / server error
-    Success --> Loading: submit another username
-    Error --> Loading: retry
-```
-
-### 6.6 Data model
-
-The app uses a normalized shape for the card:
+The app uses a single shared shape for the card (`types/leetcode.ts`):
 
 ```ts
 export interface LeetCodeProfile {
@@ -477,52 +424,50 @@ export interface LeetCodeProfile {
 }
 ```
 
-This keeps the UI free from raw LeetCode JSON details and lets the route decide how to shape the payload.
+This keeps the UI decoupled from raw LeetCode JSON details, since the GraphQL query already limits the response to this shape.
 
-### 6.7 Component contracts
+### 6.5 Component contracts
 
 ```text
 HomePage       props: none
 Navbar         props: none
-Card           props: { profile: LeetCodeProfile }
+Card           props: { profile: LeetCodeProfile, stats?: CardStats }
+CardSkeleton   props: none
 PrivacyPopup   props: { isOpen: boolean, onClose: () => void }
 ```
 
 - `HomePage` controls form submission, state transitions, and profile rendering.
 - `Card` renders the final profile card and provides export actions.
-- `PrivacyPopup` overlays the privacy policy without leaving the page.
+  - `stats` is optional: when provided, the card shows a "Problems Solved" panel with a progress ring and Easy / Medium / Hard bars. The connection is not wired up yet (see [Limitations & Future Work](#12-limitations--future-work)).
+- `CardSkeleton` mirrors the card's layout while data is loading.
+- `PrivacyPopup` overlays the privacy policy without leaving the page (Escape closes it; body scrolling is locked while open).
 
-### 6.8 Images and `next/image`
+### 6.6 Card layout details
 
-The app loads avatars and badge icons from LeetCode-owned hosts. Those hosts are explicitly allowed in `next.config.ts`:
+The card is rendered at a fixed width of **880px** and scaled down with a `ResizeObserver` so the exported PNG is identical on every device:
 
-```ts
-images: {
-  remotePatterns: [
-    { protocol: "https", hostname: "leetcode.com" },
-    { protocol: "https", hostname: "assets.leetcode.com" },
-  ],
-}
-```
+- **Header**: gradient-ringed avatar (with a letter fallback if the avatar is missing), display name (`realName`, falling back to the username) and `@handle`.
+- **Top Languages**: the top 4 languages sorted by solved count, each with a gradient bar.
+- **Badges**: a grid showing up to 14 badges (2 rows of 7). Badges that fail to load or overflow collapse into a single `+N` tile so the total count stays honest.
+- **Footer**: "Generated with LeetInsight" and the current month/year.
+- Avoids `backdrop-blur` / `mix-blend` inside the exported node because they do not survive PNG export.
 
-That prevents `next/image` from failing on remote assets.
+### 6.7 Download / export
 
-### 6.9 Download / export
+The card export is performed directly in the browser using `html-to-image`:
 
-The card export is performed directly in the browser using `html-to-image`.
-
-- The user can download the card as a PNG.
-- The user can also copy the card image to the clipboard.
-- The card is rendered using a fixed-width design and then scaled to fit the viewport.
+- **Download PNG** renders the card with `toPng` at `pixelRatio: 2` and triggers a download named `leetinsight-<username>.png`.
+- **Copy image** renders it with `toBlob` and writes a PNG to the clipboard. If the browser doesn't support clipboard images (e.g. Safari or Firefox without permissions), the app falls back to a toast suggesting Download instead.
+- Buttons are disabled while an export is in progress, and a toast confirms success or failure.
 
 This keeps the flow simple and avoids server-side image generation.
 
-### 6.10 Validation rules
+### 6.8 Validation rules
 
-| Where   | Rule                                                           |
-| ------- | -------------------------------------------------------------- |
-| Client  | Trim whitespace; reject empty input; keep the form simple      |
-| Server  | Route param is read from `params`; missing users trigger `404`  |
+| Where  | Rule                                                                                     |
+| ------ | ---------------------------------------------------------------------------------------- |
+| Client | Trim whitespace; reject empty input; URL-encode the username in the request path          |
+| Server | Route param is read from the awaited `params`; unknown users trigger a `404` response      |
 
 The server remains the source of truth for user existence. Client validation only improves UX.
 
@@ -531,7 +476,7 @@ The server remains the source of truth for user existence. Client validation onl
 ## 7. Project Structure
 
 ```text
-leet-insight/
+LeetInsight/
 │
 ├── app/
 │   ├── api/
@@ -546,6 +491,7 @@ leet-insight/
 ├── components/
 │   ├── home/
 │   │   ├── Card.tsx
+│   │   ├── CardSkeleton.tsx
 │   │   └── PrivacyPopup.tsx
 │   └── layout/
 │       └── Navbar.tsx
@@ -558,7 +504,9 @@ leet-insight/
 │   ├── LandingPage.png
 │   ├── CardSearch.png
 │   ├── downloadCard.png
-│   └── Downloaded.png
+│   ├── Downloaded.png
+│   ├── insight.png
+│   └── *.svg                       # default Next.js starter assets (unused)
 │
 ├── types/
 │   └── leetcode.ts
@@ -601,12 +549,12 @@ Open <http://localhost:3000>.
 
 ### Scripts
 
-| Command           | Description                     |
-| ----------------- | ------------------------------- |
-| `npm run dev`     | Start the local dev server      |
-| `npm run build`   | Create a production build       |
-| `npm run start`   | Run the production build        |
-| `npm run lint`    | Lint the project                |
+| Command           | Description                       |
+| ----------------- | --------------------------------- |
+| `npm run dev`     | Start the local dev server        |
+| `npm run build`   | Create a production build         |
+| `npm run start`   | Run the production build          |
+| `npm run lint`    | Lint the project with ESLint      |
 
 ### Try the API directly
 
@@ -647,43 +595,12 @@ Next.js app
 2. Import the repository into Vercel.
 3. Deploy the project.
 
-Vercel automatically detects the Next.js app; no extra server management is required.
+> Vercel automatically detects the Next.js app; no extra server management is required.
 
 ---
 
-## 11. Design Decisions & Trade-offs
+## 11. Privacy
 
-| Decision                                  | Why                                                                 | Trade-off                                                      |
-| ----------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Single Next.js app                        | One repo, one deploy, simpler development and maintenance               | Frontend and API logic live together                           |
-| Server-side LeetCode fetch               | Avoids browser CORS issues and keeps upstream request logic centralized | Extra server round-trip before UI render                       |
-| In-memory cache                          | Reduces repeated username lookups and shortens user wait time          | Cache is ephemeral and not shared across app instances          |
-| Browser-side PNG export                  | Easy sharing without backend image generation                         | Export depends on browser support and rendering quality        |
-| No database                              | Keeps the app lightweight and privacy-friendly                           | No persistent user history or analytics                        |
-| No auth / accounts                       | Keeps the app simple and accessible                                      | No saved data, personalization, or dashboards                  |
-
----
-
-## 12. Limitations & Future Work
-
-**Limitations**
-
-- LeetCode's GraphQL API is unofficial and can change without notice.
-- The app caches results in memory only, so a restart wipes the cache.
-- Public profile data may be incomplete for restricted or private profiles.
-- Rate limits or upstream outages can trigger temporary failures.
-
-**Possible future work**
-
-- Add contest stats and rating history to the card
-- Add support for more badges / richer analytics
-- Add server-side rate limiting or a more robust shared cache
-- Add a dedicated test suite for API and UI behavior
-
----
-
-## 13. Privacy
-
-LeetInsight does not require accounts, a database, or persistent profile storage. It reads public LeetCode data for the current request and renders it in the browser. The in-memory cache is short-lived and exists only to reduce duplicated API calls.
+LeetInsight does not require accounts, a database, or persistent profile storage. It reads public LeetCode data for the current request and renders it in the browser. The in-memory cache is short-lived and exists only to reduce duplicated API calls. An in-app privacy popup (bottom-right button) explains this policy to users.
 
 ---
